@@ -1,0 +1,22 @@
+syntax = "proto3";
+package Auth;
+option csharp_namespace = "GamePackets.Auth";
+
+message LoginReq {
+  string provider = 1;   // "google" | "guest" 등
+  string id_token = 2;   // 게스트면 빈 문자열 가능
+}
+
+message LoginRes {
+  string user_id = 1;
+  string display_name = 2;
+  string access_jwt = 3;
+}
+
+message HandshakeReq {
+  string access_jwt = 1;   // 웹서버가 준 게임용 JWT/티켓
+}
+message HandshakeRes {
+  string user_id    = 1;
+  string display_name = 2;
+}
