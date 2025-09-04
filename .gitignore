@@ -1,0 +1,71 @@
+﻿# --- Unity 기본 ---
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+UserSettings/
+MemoryCaptures/
+Recordings/
+SysInfo.txt
+*.stacktrace
+
+# --- 에디터 생성물 / IDE ---
+.vs/
+.vscode/
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.DotSettings*
+
+# --- 플랫폼 산출물 ---
+*.apk
+*.aab
+*.ipa
+*.app
+*.xcworkspace/
+*.xcuserdata/
+DerivedData/
+Pods/
+
+# --- 주소가능(Addressables) ---
+# (설정/엔트리는 커밋, 빌드 산출물은 무시)
+Assets/AddressableAssetsData/*/bin*/
+Assets/AddressableAssetsData/*/obj*/
+# 아래는 유지(커밋)되도록 예외 처리
+!Assets/AddressableAssetsData/**/*.asset
+!Assets/AddressableAssetsData/**/*.json
+!Assets/AddressableAssetsData/content_state.bin
+
+# --- 버스트/캐시 등 ---
+*.burst
+*.hash
+
+# --- OS 잡파일 ---
+.DS_Store
+Thumbs.db
+
+# --- 보안/키/민감정보 (꼭 무시) ---
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+*.cer
+*.pem
+*.key
+# Firebase/서비스계정 키(예: 서버에서 쓰는 Admin SDK 키)
+*serviceAccount*.json
+*firebase-adminsdk*.json
+
+# --- 패키지 파일 ---
+*.unitypackage
