@@ -12,38 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 469c24fdb3bd6431b92cc1465bd9166b, type: 3}
   m_Name: RemoteConfigDataStoreAsset
   m_EditorClassIdentifier: 
-  _rsKeyList: "[\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"8b4a1b12-40f6-4a4f-b714-7a55d41b6381\"\r\n   
-    },\r\n    \"rs\": {\r\n      \"key\": \"name\",\r\n      \"type\": \"string\",\r\n     
-    \"value\": \"warrior\"\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n     
-    \"entityId\": \"ff123f30-4ce7-4bb1-8615-926aafb1e560\"\r\n    },\r\n    \"rs\":
-    {\r\n      \"key\": \"hp\",\r\n      \"type\": \"int\",\r\n      \"value\": 100\r\n   
-    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"b088ada9-5776-4eb9-9b0e-b15954b9f1a9\"\r\n   
-    },\r\n    \"rs\": {\r\n      \"key\": \"attack\",\r\n      \"type\": \"long\",\r\n     
-    \"value\": 10000\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\":
-    \"0dff52b4-8e38-4db4-9acd-d7bc62190857\"\r\n    },\r\n    \"rs\": {\r\n     
-    \"key\": \"npc_scale\",\r\n      \"type\": \"float\",\r\n      \"value\": 2.5\r\n   
-    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"5550fa81-f273-49af-bd5f-cbfbab0a8046\"\r\n   
-    },\r\n    \"rs\": {\r\n      \"key\": \"move_speed\",\r\n      \"type\": \"float\",\r\n     
-    \"value\": 5.5\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\":
-    \"18b4d975-95a5-4f73-9282-48450a8c8a02\"\r\n    },\r\n    \"rs\": {\r\n     
-    \"key\": \"rotate_speed\",\r\n      \"type\": \"float\",\r\n      \"value\":
-    200.0\r\n    }\r\n  }\r\n]"
-  _rsLastCachedKeyList: "[\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"8b4a1b12-40f6-4a4f-b714-7a55d41b6381\"\r\n   
-    },\r\n    \"rs\": {\r\n      \"key\": \"name\",\r\n      \"type\": \"string\",\r\n     
-    \"value\": \"warrior\"\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n     
-    \"entityId\": \"ff123f30-4ce7-4bb1-8615-926aafb1e560\"\r\n    },\r\n    \"rs\":
-    {\r\n      \"key\": \"hp\",\r\n      \"type\": \"int\",\r\n      \"value\": 100\r\n   
-    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"b088ada9-5776-4eb9-9b0e-b15954b9f1a9\"\r\n   
-    },\r\n    \"rs\": {\r\n      \"key\": \"attack\",\r\n      \"type\": \"long\",\r\n     
-    \"value\": 10000\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\":
-    \"0dff52b4-8e38-4db4-9acd-d7bc62190857\"\r\n    },\r\n    \"rs\": {\r\n     
-    \"key\": \"npc_scale\",\r\n      \"type\": \"float\",\r\n      \"value\": 2.5\r\n   
-    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"5550fa81-f273-49af-bd5f-cbfbab0a8046\"\r\n   
-    },\r\n    \"rs\": {\r\n      \"key\": \"move_speed\",\r\n      \"type\": \"float\",\r\n     
-    \"value\": 5.5\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\":
-    \"18b4d975-95a5-4f73-9282-48450a8c8a02\"\r\n    },\r\n    \"rs\": {\r\n     
-    \"key\": \"rotate_speed\",\r\n      \"type\": \"float\",\r\n      \"value\":
-    200.0\r\n    }\r\n  }\r\n]"
+  _rsKeyList: "[\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"a0ceb51c-f7f6-4817-bc55-847506602ffb\"\r\n   
+    },\r\n    \"rs\": {\r\n      \"key\": \"version\",\r\n      \"type\": \"string\",\r\n     
+    \"value\": \"0.0.1\"\r\n    }\r\n  }\r\n]"
+  _rsLastCachedKeyList: "[\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"a0ceb51c-f7f6-4817-bc55-847506602ffb\"\r\n   
+    },\r\n    \"rs\": {\r\n      \"key\": \"version\",\r\n      \"type\": \"string\",\r\n     
+    \"value\": \"0.0.1\"\r\n    }\r\n  }\r\n]"
   _environments: "[\r\n  {\r\n    \"projectId\": \"8340294c-66ce-4232-976e-8da08088f331\",\r\n   
     \"name\": \"production\",\r\n    \"id\": \"63aef2d9-25db-4288-80a2-e8b768c54255\",\r\n   
     \"isDefault\": true,\r\n    \"createdAt\": \"2025-09-04T08:54:04Z\",\r\n    \"updatedAt\":
