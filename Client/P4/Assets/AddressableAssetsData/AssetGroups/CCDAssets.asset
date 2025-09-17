@@ -14,7 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_GroupName: CCDAssets
   m_GUID: e459d948caf112345913f3971fb889df
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: fe1b777a4a0a37346a8f6e8335516839
+    m_Address: CCD
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - TestLabel
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: bbe9521d20b6c9244ad01487b3cb876c, type: 2}
   m_SchemaSet:
