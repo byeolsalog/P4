@@ -19,11 +19,11 @@ public class Launcher : MonoBehaviour
     [SerializeField] private Image _progress;
 
     private static readonly HttpClient httpClient = new HttpClient();
-    private const string ServerUrl = "http://p4.ddns.net:5020/version/Android";
+    private const string ServerUrl = "http://3.24.195.47:5020/version/Android";
 
     public List<string> keysOrLabels = new List<string>()
     {
-        "TestLebel",
+        "TestLabel"
     };
 
     private async void Start()
