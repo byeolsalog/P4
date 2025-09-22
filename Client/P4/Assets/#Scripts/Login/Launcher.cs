@@ -1,178 +1,184 @@
-using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEditor;
-using System.Net.Http;
-using System.Collections.Generic;
-using TMPro;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using System.Threading.Tasks;
+using UnityEngine.AddressableAssets;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class Launcher : MonoBehaviour
 {
-    [SerializeField] private Transform _loginParent;
-    [SerializeField] private Transform _gameStartParent;
-    [SerializeField] private Transform _CCDParent;
-
-    [SerializeField] private TextMeshProUGUI _version;
+    [Header("UI References")]
+    [SerializeField] private GameObject _loginButtonsParent;
+    [SerializeField] private GameObject _CCDParent;
+    [SerializeField] private TextMeshProUGUI _versionText;
     [SerializeField] private TextMeshProUGUI _addressableDataText;
     [SerializeField] private Image _progress;
+    [SerializeField] private TextMeshProUGUI _statusMessage; // âœ… ìƒíƒœ ë©”ì‹œì§€ ì¶”ê°€
 
-    private static readonly HttpClient httpClient = new HttpClient();
-    private const string ServerUrl = "http://3.24.195.47:5020/version/Android";
-
-    public List<string> keysOrLabels = new List<string>()
-    {
-        "TestLabel"
-    };
+    private Task<bool> _addressablesDownloadTask;
 
     private async void Start()
     {
-        // ÀÎÅÍ³İ ¿¬°á »óÅÂ Ã¼Å©
-        if(Application.internetReachability == NetworkReachability.NotReachable)
+        if (Application.internetReachability == NetworkReachability.NotReachable)
         {
-            // ÀÎÅÍ³İ ¿¬°á ¾ÈµÇ¾îÀÖÀ½.
-#if UNITY_EDITOR
-            EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
-        }
-
-        // ¹öÀü Ã¼Å©
-        try
-        {
-            HttpResponseMessage response = await httpClient.GetAsync(ServerUrl);
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-            Debug.Log($"¼­¹ö ÀÀ´ä: {json}");
-
-            VersionResponse data = Newtonsoft.Json.JsonConvert.DeserializeObject<VersionResponse>(json);
-            if (data == null || string.IsNullOrEmpty(data.minVersion))
-            {
-                Debug.LogError("¼­¹ö¿¡¼­ ¹öÀü Á¤º¸¸¦ ÀĞÀ» ¼ö ¾ø½À´Ï´Ù.");
-                return;
-            }
-
-            string localVersion = Application.version;
-            _version.text = localVersion;
-            if (IsLowerVersion(localVersion, data.minVersion))
-            {
-                Debug.LogError("¾Û ¹öÀüÀÌ ¸ÂÁö ¾Ê½À´Ï´Ù. ¾÷µ¥ÀÌÆ®°¡ ÇÊ¿äÇÕ´Ï´Ù.");
-            }
-            else if(IsLowerVersion(localVersion, data.latestVersion))
-            {
-                _version.text = data.latestVersion;
-                if (data.forceUpdate)
-                {
-                    Debug.Log("»õ·Î¿î ¹öÀüÀÌ ÀÖ½À´Ï´Ù. ¾÷µ¥ÀÌÆ®°¡ ÇÊ¿äÇÕ´Ï´Ù.");
-                }
-                else
-                {
-                    Debug.Log("»õ ¹öÀüÀ¸·Î ¾÷µ¥ÀÌÆ®°¡ °¡´ÉÇÕ´Ï´Ù.");
-                }                
-            }
-            else
-            {
-                Debug.Log("¹öÀü Ã¼Å© ¿Ï·á");
-                _version.text = data.latestVersion;
-            }
-
-            if(!string.IsNullOrEmpty(data.notice))
-            {
-                Debug.Log($"°øÁö»çÇ×: {data.notice}");
-            }
-        }
-        catch (HttpRequestException e)
-        {
-            Debug.LogError($"¹öÀü Ã¼Å© Áß ¿À·ù ¹ß»ı: {e.Message}");
-            return;
-        }
-        catch(System.Exception ex)
-        {
-            Debug.LogError($"¾Ë ¼ö ¾ø´Â ¿À·ù ¹ß»ı: {ex.Message}");
+            ShowStatus("ì¸í„°ë„· ì—°ê²° ì—†ìŒ. ì•±ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.");
+            QuitApplication();
             return;
         }
 
-        // UGS ÃÊ±âÈ­
-        await GameManager.Login.InitUnityService();
-        Debug.Log("·Î±×ÀÎ ¿Ï·á");
+        _loginButtonsParent.SetActive(false);
+        _CCDParent.SetActive(false);
+        SubscribeToEvents();
 
-        AsyncOperationHandle<long> handle = Addressables.GetDownloadSizeAsync(keysOrLabels);        
-        if(handle.Status == AsyncOperationStatus.Succeeded)
+        _versionText.text = $"v{Application.version}";
+        var versionResult = await GameManager.Version.CheckVersionAsync();
+        if (versionResult == VersionCheckResult.Failed || versionResult == VersionCheckResult.ForceUpdate)
         {
-            long downloadSize = handle.Result;
-            if(downloadSize > 0)
-            {
-                _CCDParent.gameObject.SetActive(true);
-                _progress.fillAmount = 0f;
-                _addressableDataText.text = $"{downloadSize / (1024f * 1024f):F2} MB";
-                var dlHandle = Addressables.DownloadDependenciesAsync(keysOrLabels, Addressables.MergeMode.Union, true);
-                await dlHandle.Task;
+            ShowStatus("ë²„ì „ ì²´í¬ ì‹¤íŒ¨ ë˜ëŠ” ì—…ë°ì´íŠ¸ í•„ìš”.");
+            QuitApplication();
+            return;
+        }
+        _versionText.text = $"v{GameManager.Version.LatestVersion}";
 
-                while(!dlHandle.IsDone)
-                {
-                    _progress.fillAmount = dlHandle.PercentComplete;
-                    long downloadedBytes = (long)(downloadSize * dlHandle.PercentComplete);
-                    _addressableDataText.text = $"{downloadedBytes / (1024f * 1024f):F2}MB / {downloadSize / (1024f * 1024f):F2}MB";
-                    await Task.Yield();
-                }
+        bool firebaseInitSuccess = await GameManager.Login.InitializeAsync();
+        if (!firebaseInitSuccess)
+        {
+            ShowStatus("Firebase ì´ˆê¸°í™” ì‹¤íŒ¨.");
+            QuitApplication();
+            return;
+        }
 
-                _CCDParent.gameObject.SetActive(false);
+        await GameManager.Addressables.InitAddressables();
 
-                if (dlHandle.Status == AsyncOperationStatus.Succeeded)
-                {
-                    Debug.Log("´Ù¿î·Îµå ¿Ï·á");
-                }
-                else
-                {
-                    Debug.LogError("´Ù¿î·Îµå ½ÇÆĞ");
-                    return;
-                }
-            }
-            else
-            {
-                Debug.Log("´Ù¿î·Îµå ÇÊ¿ä ¾øÀ½");
-            }
+        _addressablesDownloadTask = GameManager.Addressables.DownloadAllDependenciesAsync();
+
+        _loginButtonsParent.SetActive(true);
+    }
+
+    #region Button Click Handlers
+    public async void OnClick_SignInAnonymously()
+    {
+        _loginButtonsParent.SetActive(false);
+        ShowStatus("ìµëª… ë¡œê·¸ì¸ ì¤‘...");
+        var loginTask = GameManager.Login.SignInAnonymouslyAsync();
+        await ProcessLoginAndDownload(loginTask);
+    }
+
+    public async void OnClick_SignInWithGoogle()
+    {
+        _loginButtonsParent.SetActive(false);
+        ShowStatus("Google ë¡œê·¸ì¸ ì¤‘...");
+        var loginTask = GameManager.Login.SignInWithGpgsAsync();
+        await ProcessLoginAndDownload(loginTask);
+    }
+
+    private async Task ProcessLoginAndDownload(Task<bool> loginTask)
+    {
+        await Task.WhenAll(_addressablesDownloadTask, loginTask);
+
+        bool downloadSuccess = await _addressablesDownloadTask;
+        bool loginSuccess = await loginTask;
+
+        if (downloadSuccess && loginSuccess)
+        {
+            ShowStatus("ë¡œê·¸ì¸ ë° ë‹¤ìš´ë¡œë“œ ì™„ë£Œ. ë¡œë¹„ë¡œ ì´ë™í•©ë‹ˆë‹¤...");
+            ProceedToLobby();
         }
         else
         {
-            Debug.LogError("´Ù¿î·Îµå ¿ë·® Ã¼Å© ½ÇÆĞ");
-            return;
+            ShowStatus($"ì‹¤íŒ¨! Download: {downloadSuccess}, Login: {loginSuccess}");
+            _loginButtonsParent.SetActive(true);
         }
-        _version.text = "¾îµå·¹¼­ºí ¿Ï·á";
+    }
+    #endregion
+
+    private async void ProceedToLobby()
+    {
+        await Task.Delay(1000); // âœ… UX: ì§§ì€ ë¡œë”© ë”œë ˆì´
+        Debug.Log("ëª¨ë“  ì¤€ë¹„ ì™„ë£Œ. ë¡œë¹„ ì”¬ìœ¼ë¡œ ì´ë™í•©ë‹ˆë‹¤.");
+        // UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
     }
 
-    private bool IsLowerVersion(string local, string min)
+    #region Event Handlers
+    private void SubscribeToEvents()
     {
-        // °£´ÜÇÑ ¹öÀü ºñ±³ (1.2.3 Çü½Ä ±âÁØ)
-        var lv = local.Split('.');
-        var mv = min.Split('.');
+        GameManager.Addressables.OnDownloadStarted += HandleDownloadStarted;
+        GameManager.Addressables.OnProgressUpdated += HandleProgressUpdated;
+    }
 
-        for (int i = 0; i < Mathf.Min(lv.Length, mv.Length); i++)
+    private void UnsubscribeFromEvents()
+    {
+        GameManager.Addressables.OnDownloadStarted -= HandleDownloadStarted;
+        GameManager.Addressables.OnProgressUpdated -= HandleProgressUpdated;
+    }
+
+    private void HandleDownloadStarted(long totalSize)
+    {
+        _CCDParent.SetActive(true);
+        _progress.fillAmount = 0f;
+        _addressableDataText.text = $"0.00 MB / {totalSize / (1024f * 1024f):F2} MB";
+        ShowStatus("ë°ì´í„° ë‹¤ìš´ë¡œë“œ ì‹œì‘...");
+    }
+
+    private void HandleProgressUpdated(float percent, long downloadedBytes, long totalSize)
+    {
+        _progress.fillAmount = percent;
+        _addressableDataText.text = $"{downloadedBytes / (1024f * 1024f):F2} MB / {totalSize / (1024f * 1024f):F2} MB";
+    }
+    #endregion
+
+    public void OnClickCloseCCDWindow()
+    {
+        _CCDParent.SetActive(false);
+    }
+
+    public async void OnClickClearCache()
+    {
+         await ClearCache();
+    }
+
+    public async Task ClearCache()
+    {
+        Debug.Log("ì–´ë“œë ˆì„œë¸” ìºì‹œ ì‚­ì œ ì‹œì‘...");
+
+        // 1. í˜„ì¬ ë¡œë“œëœ ë¡œì¼€ì´í„° ì •ë¦¬
+        Addressables.ClearResourceLocators();
+
+        // 2. Unity Caching API ì‚¬ìš© (ëª¨ë“  ìºì‹œ ì‚­ì œ)
+        bool success = Caching.ClearCache();
+        if (success)
         {
-            int l = int.Parse(lv[i]);
-            int m = int.Parse(mv[i]);
-
-            if (l < m) return true;
-            if (l > m) return false;
+            Debug.Log("Unity Caching.ClearCache() ì„±ê³µ");
         }
-
-        return false;
+        else
+        {
+            Debug.Log("Unity Caching.ClearCache() ì‹¤íŒ¨ (ë‹¤ë¥¸ ì‘ì—…ì´ ì§„í–‰ ì¤‘ì¼ ìˆ˜ ìˆìŒ)");
+        }
     }
 
-    public void OnClickClearCache()
+    private void OnDestroy()
     {
-        Caching.ClearCache();
+        UnsubscribeFromEvents();
     }
-}
 
-[System.Serializable]
-public class VersionResponse
-{
-    public string latestVersion;
-    public string minVersion;
-    public bool forceUpdate;
-    public string notice;
+    private void QuitApplication()
+    {
+#if UNITY_EDITOR
+        EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
+    private void ShowStatus(string message)
+    {
+        if (_statusMessage != null)
+        {
+            _statusMessage.text = message;
+        }
+        Debug.Log(message);
+    }
 }

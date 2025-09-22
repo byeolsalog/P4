@@ -1,37 +1,134 @@
-using Unity.Services.Authentication;
-using Unity.Services.Core;
+using Firebase;
+using Firebase.Auth;
+using GooglePlayGames;
+using GooglePlayGames.BasicApi;
 using System.Threading.Tasks;
-using Unity.Services.RemoteConfig;
 using UnityEngine;
-using System;
 
 public class LoginManager
 {
-    public async Task InitUnityService()
+    private FirebaseAuth _auth;
+    private FirebaseUser _user;
+
+    public async Task<bool> InitializeAsync()
     {
-        UnityServices.Initialized += () => Debug.Log("UGS 초기화 완료");
-        UnityServices.InitializeFailed += (ctx) => Debug.Log($"UGS 초기화 실패: {ctx.Message}");
+        try
+        {
+            var dependencyStatus = await FirebaseApp.CheckAndFixDependenciesAsync();
+            if (dependencyStatus != DependencyStatus.Available)
+            {
+                Debug.LogError($"Firebase 초기화 실패: {dependencyStatus}");
+                return false;
+            }
+
+            _auth = FirebaseAuth.DefaultInstance;
+            PlayGamesPlatform.Activate(); // 2.1.0에서는 Config 제거됨
+
+            Debug.Log("Firebase 및 GPGS 초기화 성공");
+            return true;
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"초기화 중 예외 발생: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> SignInAnonymouslyAsync()
+    {
+        if (_auth.CurrentUser != null) return true;
 
         try
         {
-            await UnityServices.InitializeAsync();
+            await _auth.SignInAnonymouslyAsync();
+            _user = _auth.CurrentUser;
+            Debug.Log($"Firebase 익명 로그인 성공: ({_user.UserId})");
+            return true;
         }
-        catch (ServicesInitializationException ex)
+        catch (System.Exception ex)
         {
-            Debug.LogError(ex.Message);
+            Debug.LogError($"Firebase 익명 로그인 실패: {ex.Message}");
+            return false;
         }
-        
-        AuthenticationService.Instance.SignedIn += async () =>
+    }
+
+    public async Task<bool> SignInWithGpgsAsync()
+    {
+        if (_auth.CurrentUser != null && !_auth.CurrentUser.IsAnonymous)
         {
-            var playerName = await AuthenticationService.Instance.GetPlayerNameAsync();
+            Debug.Log("이미 GPGS 계정으로 로그인되어 있습니다.");
+            return true;
+        }
 
-            Debug.Log("로그인 성공");
-            Debug.Log($"Player ID : {AuthenticationService.Instance.PlayerId}");
-            Debug.Log($"Player Name : {playerName}");
-            Debug.Log($"Player AccessToken : {AuthenticationService.Instance.AccessToken}");
-        };
+        try
+        {
+            string serverAuthCode = await GetGpgsServerAuthCode();
+            if (string.IsNullOrEmpty(serverAuthCode)) return false;
 
-        AuthenticationService.Instance.SignedOut += () => Debug.Log("로그아웃");
-        AuthenticationService.Instance.Expired += () => Debug.Log("세션 만료");
+            Credential credential = PlayGamesAuthProvider.GetCredential(serverAuthCode);
+
+            if (_auth.CurrentUser != null && _auth.CurrentUser.IsAnonymous)
+            {
+                Debug.Log("기존 익명 계정을 GPGS 계정으로 연동합니다...");
+                await _auth.CurrentUser.LinkWithCredentialAsync(credential);
+                _user = _auth.CurrentUser;
+                Debug.Log($"계정 연동 성공: {_user.DisplayName} ({_user.UserId})");
+            }
+            else
+            {
+                Debug.Log("GPGS 계정으로 Firebase에 새로 로그인합니다...");
+                await _auth.SignInWithCredentialAsync(credential);
+                _user = _auth.CurrentUser;
+                Debug.Log($"Firebase 로그인 성공: {_user.DisplayName} ({_user.UserId})");
+            }
+            return true;
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"GPGS/Firebase 연동 실패: {ex.Message}");
+            return false;
+        }
+    }
+
+    private Task<string> GetGpgsServerAuthCode()
+    {
+        var tcs = new TaskCompletionSource<string>();
+
+        if (PlayGamesPlatform.Instance.IsAuthenticated())
+        {
+            // 이미 로그인된 경우 서버 인증 코드만 요청
+            PlayGamesPlatform.Instance.RequestServerSideAccess(false, code =>
+            {
+                if (!string.IsNullOrEmpty(code))
+                    tcs.TrySetResult(code);
+                else
+                    tcs.TrySetException(new System.Exception("GPGS Server Auth Code is null or empty."));
+            });
+        }
+        else
+        {
+            // 신규 로그인 시도
+            PlayGamesPlatform.Instance.Authenticate(status =>
+            {
+                if (status == SignInStatus.Success)
+                {
+                    Debug.Log("GPGS 로그인 성공. 서버 인증 코드 요청 중...");
+                    PlayGamesPlatform.Instance.RequestServerSideAccess(false, code =>
+                    {
+                        if (!string.IsNullOrEmpty(code))
+                            tcs.TrySetResult(code);
+                        else
+                            tcs.TrySetException(new System.Exception("GPGS Server Auth Code is null or empty."));
+                    });
+                }
+                else
+                {
+                    Debug.LogError($"GPGS 로그인 실패: {status}");
+                    tcs.TrySetException(new System.Exception($"GPGS Sign-In failed with status: {status}"));
+                }
+            });
+        }
+
+        return tcs.Task;
     }
 }
