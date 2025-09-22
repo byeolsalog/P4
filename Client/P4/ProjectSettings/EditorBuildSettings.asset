@@ -8,6 +8,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/#Scenes/Login.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
+  - enabled: 1
+    path: Assets/#Scenes/Robby.unity
+    guid: fd0abb47d57b44f4e99fc151e96a2e29
+  - enabled: 1
+    path: Assets/#Scenes/Battle.unity
+    guid: da0efe1c06bd5994b9c9838de0603397
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 82d499f4f1f30a24d81d18c63c649b9d, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

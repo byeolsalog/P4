@@ -99,7 +99,7 @@ public class Launcher : MonoBehaviour
     {
         await Task.Delay(1000); // ✅ UX: 짧은 로딩 딜레이
         Debug.Log("모든 준비 완료. 로비 씬으로 이동합니다.");
-        // UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
+        // UnityEngine.SceneManagement.SceneManager.LoadScene("Lobby");
     }
 
     #region Event Handlers

@@ -94,36 +94,39 @@ public class LoginManager
     {
         var tcs = new TaskCompletionSource<string>();
 
-        if (PlayGamesPlatform.Instance.IsAuthenticated())
+        void RequestAuthCode()
         {
-            // 이미 로그인된 경우 서버 인증 코드만 요청
             PlayGamesPlatform.Instance.RequestServerSideAccess(false, code =>
             {
                 if (!string.IsNullOrEmpty(code))
+                {
+                    Debug.Log($"[GPGS] ServerAuthCode 획득 성공: {code.Substring(0, 10)}...");
                     tcs.TrySetResult(code);
+                }
                 else
+                {
+                    Debug.LogError("[GPGS] ServerAuthCode 획득 실패 (null or empty)");
                     tcs.TrySetException(new System.Exception("GPGS Server Auth Code is null or empty."));
+                }
             });
+        }
+
+        if (PlayGamesPlatform.Instance.IsAuthenticated())
+        {
+            RequestAuthCode();
         }
         else
         {
-            // 신규 로그인 시도
             PlayGamesPlatform.Instance.Authenticate(status =>
             {
                 if (status == SignInStatus.Success)
                 {
-                    Debug.Log("GPGS 로그인 성공. 서버 인증 코드 요청 중...");
-                    PlayGamesPlatform.Instance.RequestServerSideAccess(false, code =>
-                    {
-                        if (!string.IsNullOrEmpty(code))
-                            tcs.TrySetResult(code);
-                        else
-                            tcs.TrySetException(new System.Exception("GPGS Server Auth Code is null or empty."));
-                    });
+                    Debug.Log("[GPGS] 로그인 성공, ServerAuthCode 요청 시도...");
+                    RequestAuthCode();
                 }
                 else
                 {
-                    Debug.LogError($"GPGS 로그인 실패: {status}");
+                    Debug.LogError($"[GPGS] 로그인 실패: {status}");
                     tcs.TrySetException(new System.Exception($"GPGS Sign-In failed with status: {status}"));
                 }
             });

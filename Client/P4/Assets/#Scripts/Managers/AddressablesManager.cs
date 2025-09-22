@@ -26,8 +26,6 @@ public class AddressablesManager
         }
 
         var handle = Addressables.InitializeAsync();
-        var locator = await handle.Task;
-        // await 이후 handle에 접근하지 않도록, 필요한 정보를 미리 저장합니다.
         handle.Completed += (op) =>
         {
             if (op.Status == AsyncOperationStatus.Succeeded)
@@ -41,8 +39,7 @@ public class AddressablesManager
             }
         };
 
-        await handle.Task; // 작업 완료를 기다립니다.
-        // await 이후에는 handle 변수에 접근하지 않습니다.
+        await handle.Task;        
     }
 
     /// <summary>
@@ -114,7 +111,14 @@ public class AddressablesManager
                 Debug.LogError($"다운로드 크기 확인 실패: {op.OperationException}");
             }
             // 결과를 얻었으므로 핸들을 해제합니다.
-            Addressables.Release(op);
+            try
+            {
+                Addressables.Release(op);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"어드레서블 release 실패 : {e.Message}");
+            }            
         };
 
         await sizeHandle.Task;
